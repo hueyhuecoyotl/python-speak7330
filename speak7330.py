@@ -66,82 +66,93 @@ class Emitter(object):
     def send(self):
         print " ".join(self.output)
 
-def speak(q):
-    phrase = Phrase()
-    output = Emitter()
-    words = Words(q)
-    
-    for word in words:
-        phrase.append(word)
 
-        if phrase in nonterminals and len(words) > 0:
-            continue
-        else:
-            try:
-                tok = terminals[phrase]
-                output.emit(tok)
-                if args.verbose:
-                    print '    Found:', tok, phrase
-            except:
-                # walk back popping one token at a time from built up phrase
-                if len(phrase) > 1:
-                    while len(phrase) > 1:
-                        words.push(phrase.pop())
-                        try:
-                            tok = terminals[phrase]
-                            output.emit(tok)
-                            if args.verbose:   
-                                print "    Found:", tok, phrase
-                            break
-                        except KeyError:
-                            pass
-                    else:
-                        # we should never get here because at the very least the first token was valid
-                        raise Exception("Parse walkback failed")
-                else:
-                    if args.verbose:
-                        print "Not Found:     ", phrase
+class Application(object):
+
+    def __init__(self):
+        self.args = self.parse_args()
+        self.terminals = {}
+        self.nonterminals = set()
+
+    def speak(self, q):
         phrase = Phrase()
-    return output
-    
-parser = argparse.ArgumentParser(description="Generate speech codes for 7330 repeater")
-parser.add_argument('-v', dest='verbose', action='store_true',
-                    help='Print parsing detail')
-parser.add_argument('-e', dest='expression', nargs='?', metavar="PHRASE",
-                    help='speak PHRASE')
-args = parser.parse_args()
+        output = Emitter()
+        words = Words(q)
+
+        for word in words:
+            phrase.append(word)
+
+            if phrase in self.nonterminals and len(words) > 0:
+                continue
+            else:
+                try:
+                    tok = self.terminals[phrase]
+                    output.emit(tok)
+                    if self.args.verbose:
+                        print '    Found:', tok, phrase
+                except:
+                    # walk back popping one token at a time from built up phrase
+                    if len(phrase) > 1:
+                        while len(phrase) > 1:
+                            words.push(phrase.pop())
+                            try:
+                                tok = self.terminals[phrase]
+                                output.emit(tok)
+                                if self.args.verbose:
+                                    print "    Found:", tok, phrase
+                                break
+                            except KeyError:
+                                pass
+                        else:
+                            # we should never get here because at the very least the first token was valid
+                            raise Exception("Parse walkback failed")
+                    else:
+                        if self.args.verbose:
+                            print "Not Found:     ", phrase
+            phrase = Phrase()
+        return output
 
 
-
-terminals = {}
-nonterminals = set()
-
-with open('spoken_words.csv', 'r') as f:
-    for l in f:
-        code, string = l.strip().lower().split(',')
-        terminals[Phrase(string)] = code
-
-        for p in Words(string).substrings():
-            nonterminals.add(Phrase(p))
-
-if False:
-    pprint(sorted(terminals))
-    pprint(nonterminals)
-    exit(0)
+    def parse_args(self):
+        parser = argparse.ArgumentParser(description="Generate speech codes for 7330 repeater")
+        parser.add_argument('-v', dest='verbose', action='store_true',
+                            help='Print parsing detail')
+        parser.add_argument('-e', dest='expression', nargs='?', metavar="PHRASE",
+                            help='speak PHRASE')
+        return parser.parse_args()
 
 
-if args.expression:
-    speak(args.expression).send()
-else:
-    while True:
-        try:
-            q = raw_input("Enter phrase: ").strip().lower()
-            if q == "":
-                exit(0)
-        except:
-            print
-            break
-        output = speak(q)
-        if args.verbose:
-            print "Result String:"
-        output.send()
+    def main(self):
+
+        with open('spoken_words.csv', 'r') as f:
+            for l in f:
+                code, string = l.strip().lower().split(',')
+                self.terminals[Phrase(string)] = code
+
+                for p in Words(string).substrings():
+                    self.nonterminals.add(Phrase(p))
+
+        if False:
+            pprint(sorted(self.terminals))
+            pprint(self.nonterminals)
+            return
+
+        if self.args.expression:
+            self.speak(self.args.expression).send()
+        else:
+            while True:
+                try:
+                    q = raw_input("Enter phrase: ").strip().lower()
+                    if q == "":
+                        return
+                except:
+                    print
+                    break
+                output = self.speak(q)
+                if self.args.verbose:
+                    print "Result String:"
+                output.send()
+
+
+if __name__ == '__main__':
+    Application().main()
