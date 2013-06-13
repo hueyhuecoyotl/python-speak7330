@@ -10,10 +10,10 @@ Put speak7330.py and spoken_words.csv in the same directory.
 ## Files
 
 <dl>
-<dt>speak7330.py</dt>
+<dt><i>speak7330.py:</i></dt>
 <dd>a program which takes a sentance and translates it into command codes for the SCOM 7330 repeater.  Run `speak7330.py -h` for usage informmation.</dd>
 
-<dt>spoken_words.csv</dt>
+<dt><i>spoken_words.csv:</i></dt>
 <dd>a CSV file dictionary of phrases to codes.  You may add extra associations to this file.</dd>
 </dl>
 
