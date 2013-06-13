@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pprint
+from pprint import pprint
 import re
 import argparse
 
